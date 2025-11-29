@@ -1,6 +1,6 @@
 -- Drop tables first
 DROP TABLE IF EXISTS auth.sessions CASCADE;
-DROP TABLE IF EXISTS auth.users CASCADE;
+DROP TABLE IF EXISTS auth.accounts CASCADE;
 
 -- Drop schema
 DROP SCHEMA IF EXISTS auth CASCADE;
