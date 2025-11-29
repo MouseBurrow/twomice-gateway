@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::database::account::{create_account, login_account, AuthError};
+use crate::database::auth::{AuthError, AuthHandler};
 use crate::utils::password::hash_password;
 use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
@@ -23,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
     let password = "myTestPassword";
     let password_hash = hash_password(password).unwrap();
 
-    match login_account(&pool, username, password).await {
+    match AuthHandler::login_account(&pool, username, password).await {
         Ok((user_id, token)) => {
             println!("Login attempt successful!");
             println!("User ID : {}", user_id);
@@ -36,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
             AuthError::UserNotFound => {
                 println!("User with that name not found, creating a new account");
 
-                match create_account(&pool, username, password_hash.as_str()).await {
+                match AuthHandler::create_account(&pool, username, password_hash.as_str()).await {
                     Ok((user_id, token)) => {
                         println!("Account created successfully!");
                         println!("User ID : {}", user_id);
