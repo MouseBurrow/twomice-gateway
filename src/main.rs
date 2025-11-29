@@ -1,7 +1,5 @@
 use crate::config::Config;
-use crate::database::account::{create_account, get_user_by_username};
-use crate::models::account::User;
-use crate::models::session::CreateAccountResult;
+use crate::database::account::{create_account, login_account, AuthError};
 use crate::utils::password::hash_password;
 use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
@@ -23,15 +21,43 @@ async fn main() -> anyhow::Result<()> {
 
     let username = "newShrimp";
     let password = "myTestPassword";
-    let hash = hash_password(password).unwrap();
+    let password_hash = hash_password(password).unwrap();
 
-    let user: Option<User> = get_user_by_username(&pool, username).await?;
-    if let Some(user) = user {
-        println!("{}", user);
-    } else {
-        println!("User not found, creating a new one");
-        let result: CreateAccountResult = create_account(&pool, username, password).await?;
-        println!("{:?}", result);
+    match login_account(&pool, username, password).await {
+        Ok((user_id, token)) => {
+            println!("Login attempt successful!");
+            println!("User ID : {}", user_id);
+            println!("Token   : {}", token);
+        }
+        Err(e) => match e {
+            AuthError::InvalidPassword => {
+                println!("Invalid password");
+            }
+            AuthError::UserNotFound => {
+                println!("User with that name not found, creating a new account");
+
+                match create_account(&pool, username, password_hash.as_str()).await {
+                    Ok((user_id, token)) => {
+                        println!("Account created successfully!");
+                        println!("User ID : {}", user_id);
+                        println!("Token   : {}", token);
+                    }
+                    Err(e) => match e {
+                        AuthError::UsernameExists => {
+                            println!("Account already exists!");
+                        }
+                        AuthError::Db(err) => {
+                            println!("Unexpected database error: {}", err);
+                        }
+                        _ => (),
+                    },
+                }
+            }
+            AuthError::Db(err) => {
+                println!("Unexpected database error: {}", err);
+            }
+            _ => (),
+        },
     }
 
     Ok(())
