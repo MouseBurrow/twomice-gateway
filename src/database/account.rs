@@ -106,6 +106,7 @@ pub enum AuthError {
 ///
 /// # Errors
 /// * `AuthError::UsernameExists` - An error indicating that the account with the given username already exists.
+/// * `AuthError::Db` - If there was an unexpected error!
 pub async fn create_account(
     pool: &PgPool,
     username: &str,
@@ -133,6 +134,7 @@ pub async fn create_account(
 /// # Errors
 /// * `AuthError::TokenInvalid` - If the session token is invalid.
 /// * `AuthError::SessionExpired` - If the session token has expired.
+/// * `AuthError::Db` - If there was an unexpected error!
 pub async fn login_with_token(pool: &PgPool, token: &str) -> Result<Uuid, AuthError> {
     db_call!(
         pool   = pool,
@@ -156,9 +158,9 @@ pub async fn login_with_token(pool: &PgPool, token: &str) -> Result<Uuid, AuthEr
 /// A tuple containing the account ID and session token.
 ///
 /// # Errors
-/// * `AuthError::Db` - If there was an unexpected error!
 /// * `AuthError::UserNotFound` - If the username does not exist in the database.
 /// * `AuthError::InvalidPassword` - If the given password hash does not match the stored hash.
+/// * `AuthError::Db` - If there was an unexpected error!
 pub async fn login_account(
     pool: &PgPool,
     username: &str,
