@@ -1,13 +1,13 @@
 use crate::config::Config;
-use crate::database::auth::{AuthError, AuthHandler};
-use crate::utils::password::hash_password;
+use crate::db::auth::{AuthError, AuthHandler};
+use crate::services::password_service::hash_password;
 use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
 
 mod config;
-mod database;
+mod db;
 mod models;
-mod utils;
+mod services;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
