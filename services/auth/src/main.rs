@@ -1,10 +1,10 @@
-use crate::config::Config;
-use crate::db::auth::{AuthError, AuthHandler};
+use crate::db::auth::AuthHandler;
 use crate::services::password_service::hash_password;
 use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
+use utils::config::Config;
+use utils::errors::AuthError;
 
-mod config;
 mod db;
 mod models;
 mod services;

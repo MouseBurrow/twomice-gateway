@@ -1,5 +1,6 @@
-use crate::utils::password::verify_password;
+use crate::services::password_service::verify_password;
 use sqlx::PgPool;
+use utils::errors::AuthError;
 use uuid::Uuid;
 
 #[macro_export]
@@ -81,17 +82,6 @@ macro_rules! db_call {
             AuthError::Db(err)
         })
     }};
-}
-
-#[derive(Debug)]
-pub enum AuthError {
-    UsernameExists,
-    SessionExpired,
-    TokenInvalid,
-    UserNotFound,
-    InvalidPassword,
-    QueryFailed,
-    Db(sqlx::Error),
 }
 
 pub struct AuthHandler {}
