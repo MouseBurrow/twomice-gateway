@@ -1,7 +1,7 @@
 use crate::db::auth::AuthHandler;
 use crate::services::password_service::hash_password;
+use config::{env_dir, Config};
 use sqlx::postgres::PgPoolOptions;
-use utils::config::Config;
 use utils::errors::AuthError;
 
 mod db;
@@ -10,7 +10,7 @@ mod services;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    dotenvy::from_filename(concat!(env!("CARGO_MANIFEST_DIR"), "/.env")).ok();
+    Config::load_env(env_dir!())?;
 
     let config: Config = Config::init().unwrap();
     let pool = PgPoolOptions::new()
