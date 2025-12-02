@@ -107,7 +107,7 @@ impl AuthHandler {
     ) -> Result<(Uuid, String), AuthError> {
         db_call!(
             pool   = pool,
-            query  = sqlx::query_as(r#"SELECT account_id, session_token FROM auth.create_account($1, $2)"#),
+            query  = sqlx::query_as(r#"SELECT account_id, session_token FROM create_account($1, $2)"#),
             binds  = [username, password_hash],
             errors = {
                 "23505" => AuthError::UsernameExists
@@ -131,7 +131,7 @@ impl AuthHandler {
     pub async fn login_with_token(pool: &PgPool, token: &str) -> Result<Uuid, AuthError> {
         db_call!(
             pool   = pool,
-            query  = sqlx::query_scalar(r#"SELECT auth.login_with_token($1)"#),
+            query  = sqlx::query_scalar(r#"SELECT login_with_token($1)"#),
             binds  = [token],
             errors = {
                 "P1001" => AuthError::TokenInvalid,
@@ -161,7 +161,7 @@ impl AuthHandler {
     ) -> Result<(Uuid, String), AuthError> {
         let stored_hash: String = db_call!(
             pool   = pool,
-            query  = sqlx::query_scalar(r#"SELECT auth.get_password_hash($1)"#),
+            query  = sqlx::query_scalar(r#"SELECT get_password_hash($1)"#),
             binds  = [username],
             errors = {
                 "P2001" => AuthError::UserNotFound
@@ -174,13 +174,13 @@ impl AuthHandler {
 
         let user_id: Uuid = db_call!(
             pool = pool,
-            query = sqlx::query_scalar(r#"SELECT id FROM auth.accounts WHERE username=$1"#),
+            query = sqlx::query_scalar(r#"SELECT id FROM accounts WHERE username=$1"#),
             binds = [username]
         )?;
 
         let session_token: String = db_call!(
             pool = pool,
-            query = sqlx::query_scalar(r#"SELECT auth.create_session($1)"#),
+            query = sqlx::query_scalar(r#"SELECT create_session($1)"#),
             binds = [user_id]
         )?;
 
@@ -201,7 +201,7 @@ impl AuthHandler {
     pub async fn logout_session(pool: &PgPool, session_token: String) -> Result<bool, AuthError> {
         db_call!(
             pool = pool,
-            query = sqlx::query_scalar(r#"SELECT auth.logout_session($1)"#),
+            query = sqlx::query_scalar(r#"SELECT logout_session($1)"#),
             binds = [session_token]
         )
     }

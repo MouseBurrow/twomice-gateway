@@ -2,7 +2,7 @@
 -- Migration: Create Procedures
 -- ====================================================
 
-CREATE FUNCTION auth.create_account(
+CREATE FUNCTION create_account(
     p_username TEXT,
     p_password_hash TEXT
 )
@@ -19,7 +19,7 @@ DECLARE
     new_session_token TEXT;
 BEGIN
     -- Create the account
-    INSERT INTO auth.accounts (username, password_hash)
+    INSERT INTO accounts (username, password_hash)
     VALUES (p_username, p_password_hash)
     RETURNING id INTO new_account_id;
 
@@ -27,7 +27,7 @@ BEGIN
     SELECT encode(gen_random_bytes(32), 'hex') INTO new_session_token;
 
     -- Create the session that is connected to the user
-    INSERT INTO auth.sessions (account_id, session_token)
+    INSERT INTO sessions (account_id, session_token)
     VALUES (new_account_id, new_session_token);
 
     RETURN QUERY SELECT new_account_id, new_session_token;
@@ -38,7 +38,7 @@ EXCEPTION
 END;
 $$;
 
-CREATE FUNCTION auth.login_with_token(
+CREATE FUNCTION login_with_token(
     p_session_token TEXT
 )
     RETURNS UUID
@@ -52,7 +52,7 @@ BEGIN
     -- Fetch session associated with the token
     SELECT account_id, expires_at
     INTO existing_id, token_expiration
-    FROM auth.sessions
+    FROM sessions
     WHERE session_token = p_session_token;
 
     -- If not found, token does not exist at all
@@ -66,7 +66,7 @@ BEGIN
     END IF;
 
     -- Slide the expiration, extend expiration on use
-    UPDATE auth.sessions
+    UPDATE sessions
     SET last_used_at = NOW(),
         expires_at   = NOW() + INTERVAL '30 days'
     WHERE session_token = p_session_token;
@@ -75,7 +75,7 @@ BEGIN
 END;
 $$;
 
-CREATE FUNCTION auth.get_password_hash(p_username TEXT) RETURNS TEXT
+CREATE FUNCTION get_password_hash(p_username TEXT) RETURNS TEXT
     LANGUAGE plpgsql AS
 $$
 DECLARE
@@ -83,7 +83,7 @@ DECLARE
 BEGIN
     SELECT password_hash
     INTO stored_hash
-    FROM auth.accounts
+    FROM accounts
     WHERE username = p_username;
 
     IF NOT FOUND THEN
@@ -94,7 +94,7 @@ BEGIN
 END;
 $$;
 
-CREATE FUNCTION auth.create_session(p_account_id UUID)
+CREATE FUNCTION create_session(p_account_id UUID)
     RETURNS TEXT
     LANGUAGE plpgsql
 AS
@@ -104,14 +104,14 @@ DECLARE
 BEGIN
     SELECT encode(gen_random_bytes(32), 'hex') INTO new_token;
 
-    INSERT INTO auth.sessions (account_id, session_token)
+    INSERT INTO sessions (account_id, session_token)
     VALUES (p_account_id, new_token);
 
     RETURN new_token;
 END;
 $$;
 
-CREATE FUNCTION auth.logout_session(p_session_token TEXT)
+CREATE FUNCTION logout_session(p_session_token TEXT)
     RETURNS BOOLEAN
     LANGUAGE plpgsql
 AS
@@ -119,7 +119,7 @@ $$
 DECLARE
     deleted_count INT;
 BEGIN
-    DELETE FROM auth.sessions WHERE session_token = p_session_token RETURNING 1 INTO deleted_count;
+    DELETE FROM sessions WHERE session_token = p_session_token RETURNING 1 INTO deleted_count;
 
     RETURN deleted_count IS NOT NULL;
 END;

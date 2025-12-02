@@ -1,6 +1,5 @@
 use crate::db::auth::AuthHandler;
 use crate::services::password_service::hash_password;
-use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
 use utils::config::Config;
 use utils::errors::AuthError;
@@ -11,13 +10,15 @@ mod services;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    dotenv().ok();
+    dotenvy::from_filename(concat!(env!("CARGO_MANIFEST_DIR"), "/.env")).ok();
 
     let config: Config = Config::init().unwrap();
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(config.database_url.as_str())
         .await?;
+
+    // TEST
 
     let username = "newShrimp";
     let password = "myTestPassword";
