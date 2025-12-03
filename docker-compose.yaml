@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    container_name: auth
+    restart: always
+    environment:
+      DATABASE_URL: "${AUTH_DATABASE_URL}"
+      RUST_LOG: "info"
+    ports:
+      - "${AUTH_SERVICE_PORT}:8000"
+    networks:
+      - backend
+
+networks:
+  backend:

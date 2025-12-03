@@ -10,13 +10,14 @@ mod services;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    Config::load_env()?;
+    let service_name = "AUTH";
 
-    let config: Config = Config::init().unwrap();
+    let config: Config = Config::init(service_name);
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(config.database_url.as_str())
         .await?;
+    sqlx::migrate!("./migrations").run(&pool).await?;
 
     // TEST
 
