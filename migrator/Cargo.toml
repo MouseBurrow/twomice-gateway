@@ -1,0 +1,12 @@
+[package]
+name = "migrator"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+sqlx = { version = "0.9.0-alpha.1", features = ["postgres", "runtime-tokio", "macros", "uuid", "chrono", "migrate", "tls-native-tls"] }
+clap = { version = "4.5.53", features = ["derive"] }
+tokio = { version = "1.48.0", features = ["rt", "rt-multi-thread", "macros"] }
+anyhow = "1.0.100"
+dotenvy = "0.15.7"
+thiserror = "2.0.17"
