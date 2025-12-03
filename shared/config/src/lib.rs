@@ -1,10 +1,6 @@
+use dotenvy::dotenv;
 use std::env;
 use std::path::PathBuf;
-
-#[macro_export]
-macro_rules! env_dir {
-    () => {{ concat!(env!("CARGO_MANIFEST_DIR"), "/.env") }};
-}
 
 pub struct Config {
     pub database_url: String,
@@ -12,15 +8,12 @@ pub struct Config {
 }
 
 impl Config {
-    /// Load the .env file in the given directory
-    ///
-    /// # Arguments
-    /// * `dir` - The result of env_dir!()
+    /// Load the .env file in the root
     ///
     /// # Errors
     /// * `dotenvy::Error` - If the .env file cannot be loaded
-    pub fn load_env(dir: &str) -> dotenvy::Result<PathBuf> {
-        dotenvy::from_filename(dir)
+    pub fn load_env() -> dotenvy::Result<PathBuf> {
+        dotenv()
     }
 
     pub fn init() -> Result<Config, &'static str> {

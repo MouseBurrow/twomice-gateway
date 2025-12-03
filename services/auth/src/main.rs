@@ -1,6 +1,6 @@
 use crate::db::auth::AuthHandler;
 use crate::services::password_service::hash_password;
-use config::{env_dir, Config};
+use config::Config;
 use sqlx::postgres::PgPoolOptions;
 use utils::errors::AuthError;
 
@@ -10,7 +10,7 @@ mod services;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    Config::load_env(env_dir!())?;
+    Config::load_env()?;
 
     let config: Config = Config::init().unwrap();
     let pool = PgPoolOptions::new()
