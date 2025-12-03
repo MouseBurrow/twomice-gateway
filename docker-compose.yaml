@@ -8,10 +8,24 @@ services:
     container_name: auth
     restart: always
     environment:
-      DATABASE_URL: "${AUTH_DATABASE_URL}"
+      AUTH_DATABASE_URL: "${AUTH_DATABASE_URL}"
       RUST_LOG: "info"
     ports:
       - "${AUTH_SERVICE_PORT}:8000"
+    networks:
+      - backend
+
+  post:
+    build:
+      context: .
+      dockerfile: services/post/Dockerfile
+    container_name: post
+    restart: always
+    environment:
+      POST_DATABASE_URL: "${POST_DATABASE_URL}"
+      RUST_LOG: "info"
+    ports:
+      - "${POST_SERVICE_PORT}:8000"
     networks:
       - backend
 

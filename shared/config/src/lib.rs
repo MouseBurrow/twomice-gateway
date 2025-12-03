@@ -25,6 +25,8 @@ impl Config {
             .parse::<u16>()
             .unwrap_or_else(|_| panic!("Port value must be 16bits integer"));
 
+        eprintln!("Successfully loaded configs");
+
         Config {
             database_url,
             port: service_port,

@@ -1,15 +1,7 @@
--- ====================================================
--- Migration: Create Accounts and Sessions
--- ====================================================
-
--- Extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 -- Users table
 CREATE TABLE accounts
 (
-    id            UUID PRIMARY KEY   NOT NULL DEFAULT uuid_generate_v4(),
+    id            UUID PRIMARY KEY   NOT NULL DEFAULT extensions.uuid_generate_v4(),
     username      VARCHAR(50) UNIQUE NOT NULL,
     password_hash TEXT               NOT NULL,
     is_admin      BOOLEAN            NOT NULL DEFAULT FALSE,
@@ -20,7 +12,7 @@ CREATE TABLE accounts
 -- Sessions table
 CREATE TABLE sessions
 (
-    id            UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    id            UUID PRIMARY KEY NOT NULL DEFAULT extensions.uuid_generate_v4(),
     account_id    UUID             NOT NULL REFERENCES accounts (id) ON DELETE CASCADE,
     session_token TEXT UNIQUE      NOT NULL,
     last_used_at  TIMESTAMP                 DEFAULT NOW(),

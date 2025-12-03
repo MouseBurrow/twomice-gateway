@@ -1,7 +1,3 @@
--- ====================================================
--- Migration: Create Procedures
--- ====================================================
-
 CREATE FUNCTION create_account(
     p_username TEXT,
     p_password_hash TEXT
@@ -24,7 +20,7 @@ BEGIN
     RETURNING id INTO new_account_id;
 
     -- Generate secure session token
-    SELECT encode(gen_random_bytes(32), 'hex') INTO new_session_token;
+    SELECT encode(extensions.gen_random_bytes(32), 'hex') INTO new_session_token;
 
     -- Create the session that is connected to the user
     INSERT INTO sessions (account_id, session_token)
@@ -102,7 +98,7 @@ $$
 DECLARE
     new_token TEXT;
 BEGIN
-    SELECT encode(gen_random_bytes(32), 'hex') INTO new_token;
+    SELECT encode(extensions.gen_random_bytes(32), 'hex') INTO new_token;
 
     INSERT INTO sessions (account_id, session_token)
     VALUES (p_account_id, new_token);
