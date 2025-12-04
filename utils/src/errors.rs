@@ -8,3 +8,8 @@ pub enum AuthError {
     QueryFailed,
     Db(sqlx::Error),
 }
+
+pub enum PostError {
+    UserNotFound,
+    Db(sqlx::Error),
+}
