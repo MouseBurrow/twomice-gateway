@@ -5,6 +5,5 @@ pub enum AuthError {
     TokenInvalid,
     UserNotFound,
     InvalidPassword,
-    QueryFailed,
     Db(sqlx::Error),
 }

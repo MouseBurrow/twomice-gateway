@@ -7,7 +7,6 @@ COPY Cargo.toml Cargo.lock ./
 COPY migrator migrator
 COPY services services
 COPY shared shared
-COPY utils utils
 #COPY services/gateway services/gateway
 
 # Build only this service

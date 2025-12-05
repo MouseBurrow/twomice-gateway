@@ -1,7 +1,7 @@
+use crate::db::errors::AuthError;
 use crate::services::password_service::verify_password;
+use burrow_db::db_call;
 use sqlx::PgPool;
-use utils::db_call;
-use utils::errors::AuthError;
 use uuid::Uuid;
 
 pub struct AuthHandler {}
@@ -31,7 +31,8 @@ impl AuthHandler {
             binds  = [username, password_hash],
             errors = {
                 "23505" => AuthError::UsernameExists
-            }
+            },
+            fallback = AuthError::Db
         )
     }
 
@@ -56,7 +57,8 @@ impl AuthHandler {
             errors = {
                 "P1001" => AuthError::TokenInvalid,
                 "P1002" => AuthError::SessionExpired
-            }
+            },
+            fallback = AuthError::Db
         )
     }
 
@@ -85,7 +87,8 @@ impl AuthHandler {
             binds  = [username],
             errors = {
                 "P2001" => AuthError::UserNotFound
-            }
+            },
+            fallback = AuthError::Db
         )?;
 
         if verify_password(password, stored_hash).is_err() {
@@ -95,13 +98,15 @@ impl AuthHandler {
         let user_id: Uuid = db_call!(
             pool = pool,
             query = sqlx::query_scalar(r#"SELECT id FROM accounts WHERE username=$1"#),
-            binds = [username]
+            binds = [username],
+            fallback = AuthError::Db
         )?;
 
         let session_token: String = db_call!(
             pool = pool,
             query = sqlx::query_scalar(r#"SELECT create_session($1)"#),
-            binds = [user_id]
+            binds = [user_id],
+            fallback = AuthError::Db
         )?;
 
         Ok((user_id, session_token))
@@ -122,7 +127,8 @@ impl AuthHandler {
         db_call!(
             pool = pool,
             query = sqlx::query_scalar(r#"SELECT logout_session($1)"#),
-            binds = [session_token]
+            binds = [session_token],
+            fallback = AuthError::Db
         )
     }
 }

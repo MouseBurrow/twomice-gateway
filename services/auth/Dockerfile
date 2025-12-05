@@ -7,7 +7,6 @@ COPY Cargo.toml Cargo.lock ./
 COPY migrator migrator
 COPY services services
 COPY shared shared
-COPY utils utils
 #COPY services/auth services/auth
 
 # Build only this service

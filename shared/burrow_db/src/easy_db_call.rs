@@ -1,5 +1,3 @@
-pub mod errors;
-
 #[macro_export]
 macro_rules! db_call {
     // -----------------------------------
@@ -7,13 +5,15 @@ macro_rules! db_call {
     // -----------------------------------
     (
         pool   = $pool:expr,
-        query  = $query:expr,
+        query  = $query:expr,,
+        fallback  = $fallback:expr
     ) => {{
         db_call!(
             pool   = $pool,
             query  = $query,
             binds  = [],
-            errors = {}
+            errors = {},
+            fallback = $fallback
         )
     }};
 
@@ -23,13 +23,15 @@ macro_rules! db_call {
     (
         pool   = $pool:expr,
         query  = $query:expr,
-        binds  = [$($param:expr),* $(,)?]
+        binds  = [$($param:expr),* $(,)?],
+        fallback  = $fallback:expr
     ) => {{
         db_call!(
             pool   = $pool,
             query  = $query,
             binds  = [$($param),*],
-            errors = {}
+            errors = {},
+            fallback = $fallback
         )
     }};
 
@@ -39,13 +41,15 @@ macro_rules! db_call {
     (
         pool   = $pool:expr,
         query  = $query:expr,
-        errors = { $( $code:expr => $variant:expr ),* $(,)? }
+        errors = { $( $code:expr => $variant:expr ),* $(,)? },
+        fallback  = $fallback:expr
     ) => {{
         db_call!(
             pool   = $pool,
             query  = $query,
             binds  = [],
-            errors = { $( $code => $variant ),* }
+            errors = { $( $code => $variant ),* },
+            fallback = $fallback
         )
     }};
 
@@ -56,7 +60,8 @@ macro_rules! db_call {
         pool   = $pool:expr,
         query  = $query:expr,
         binds  = [$($param:expr),* $(,)?],
-        errors = { $( $code:expr => $variant:expr ),* $(,)? }
+        errors = { $( $code:expr => $variant:expr ),* $(,)? },
+        fallback  = $fallback:expr
     ) => {{
         // Handle the bindings
         let mut query = $query;
@@ -75,8 +80,9 @@ macro_rules! db_call {
                     _ => {}
                 }
             }
-            // If nothing fits, return textual error
-            AuthError::Db(err)
+
+            // If nothing fits, return fallback method
+            $fallback(err)
         })
     }};
 }
