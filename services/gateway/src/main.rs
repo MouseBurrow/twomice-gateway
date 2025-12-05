@@ -1,9 +1,11 @@
-use actix_web::{App, HttpServer};
+use actix_web::{get, App, HttpResponse, HttpServer};
 use config::Config;
-use sqlx::postgres::PgPoolOptions;
 use std::env;
 
-mod db;
+#[get("/ping")]
+async fn ping() -> HttpResponse {
+    HttpResponse::Ok().body("pong")
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -11,18 +13,11 @@ async fn main() -> anyhow::Result<()> {
     #[cfg(debug_assertions)]
     Config::load_local_env();
 
-    // Connect to the database
-    let config: Config = Config::init("POST");
-    let pool = PgPoolOptions::new()
-        .max_connections(5)
-        .connect(config.database_url.as_str())
-        .await?;
-
     // Start listening endpoint
     let port = env::var("PORT")?;
     let addr = format!("0.0.0.0:{}", port);
     println!("Starting Gateway at http://{}", addr);
-    HttpServer::new(App::new)
+    HttpServer::new(|| App::new().service(ping))
         .bind(addr)?
         .run()
         .await
