@@ -1,4 +1,5 @@
 use actix_web::{get, App, HttpResponse, HttpServer};
+#[cfg(debug_assertions)]
 use config::config::Config;
 
 #[get("/ping")]
@@ -13,10 +14,8 @@ async fn main() -> anyhow::Result<()> {
     Config::load_local_env();
 
     // Start listening endpoint
-    let config = Config::load("GATEWAY");
-    let addr = format!("0.0.0.0:{}", config.port);
     HttpServer::new(|| App::new().service(ping))
-        .bind(addr)?
+        .bind("0.0.0.0:8080")?
         .run()
         .await?;
 
