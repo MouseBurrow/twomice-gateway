@@ -2,23 +2,18 @@ use crate::gateway_app::GatewayApp;
 use actix_web::error::ErrorBadGateway;
 use actix_web::{web, HttpRequest, HttpResponse};
 
-macro_rules! route_request {
+macro_rules! route_map {
     (
-        ($input_path:ident, $input_method:expr):
-        $(
-            $method:ident $path:literal -> $target:literal $flag:ident
-        ),* $(,)?
+        $path:expr,
+        $( $prefix:literal -> $service:literal ),* $(,)?
     ) => {
-        match ($input_path, $input_method) {
+        match $path {
             $(
-                ($path, actix_web::http::Method::$method) => ($target, route_request!(@flag $flag)),
+                p if p.starts_with($prefix) => $service,
             )*
-            _ => return HttpResponse::NotFound().finish(),
+            _ => "NOT_FOUND",
         }
     };
-
-    (@flag VALIDATE) => { true };
-    (@flag NOT_VALIDATE) => { false };
 }
 
 async fn forward_request(
@@ -58,24 +53,24 @@ pub async fn request_handler(
     body: web::Payload,
 ) -> HttpResponse {
     let path = req.path();
-    let method = req.method().clone();
 
-    let (target, must_validate) = route_request!((path, method.clone()):
-        POST "/login" -> "http://auth-service:8080/login" NOT_VALIDATE,
-        POST "/sign_in" -> "http://auth-service:8080/sign_in" NOT_VALIDATE,
-        POST "/post" -> "http://post-service:8080/post" VALIDATE
+    let service = route_map!(path,
+        "/login"   -> "http://auth-service:8080",
+        "/sign_in" -> "http://auth-service:8080",
+        "/mcf"     -> "http://post-service:8080",
     );
+
+    if service == "NOT_FOUND" {
+        return HttpResponse::NotFound().finish();
+    }
 
     let validation = match app.validate_token(&req).await {
         Ok(v) => v,
-        Err(_) => return HttpResponse::BadGateway().finish(),
+        _ => return HttpResponse::BadGateway().finish(),
     };
 
-    if must_validate && validation.is_none() {
-        return HttpResponse::Unauthorized().finish();
-    }
-
-    forward_request(&req, body, target, validation)
+    let target = format!("{service}{path}");
+    forward_request(&req, body, &target, validation)
         .await
         .unwrap_or_else(|_| HttpResponse::BadGateway().finish())
 }
