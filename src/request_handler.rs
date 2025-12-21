@@ -56,7 +56,7 @@ pub async fn request_handler(
 
     let service = route_map!(path,
         "/login"   -> "http://auth-service:8080",
-        "/sign_in" -> "http://auth-service:8080",
+        "/signup" -> "http://auth-service:8080",
         "/mcf"     -> "http://post-service:8080",
     );
 
