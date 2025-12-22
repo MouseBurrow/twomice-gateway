@@ -1,4 +1,3 @@
-use actix_web::HttpRequest;
 use awc::error::SendRequestError;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -49,35 +48,35 @@ impl GatewayApp {
         Ok(response_user_id)
     }
 
-    pub async fn validate_token(
-        &self,
-        req: &HttpRequest,
-    ) -> Result<Option<String>, SendRequestError> {
-        if let Some(token) = req.cookie("session_token").map(|c| c.value().to_string()) {
-            let cache_result = {
-                let cache_read = self.cache.read().await;
-                cache_read.get(&token).cloned()
-            };
+    pub async fn validate_token(&self, token: String) -> Result<Option<String>, SendRequestError> {
+        let cache_result = {
+            let cache_read = self.cache.read().await;
+            cache_read.get(&token).cloned()
+        };
 
-            match cache_result {
-                Some((Some(user_id), expires_at)) => {
-                    if Instant::now() > expires_at {
-                        self.handle_validate_request(token).await
-                    } else {
-                        Ok(Some(user_id.clone()))
-                    }
+        match cache_result {
+            Some((Some(user_id), expires_at)) => {
+                if Instant::now() > expires_at {
+                    self.handle_validate_request(token).await
+                } else {
+                    Ok(Some(user_id.clone()))
                 }
-                Some((None, expires_at)) => {
-                    if Instant::now() > expires_at {
-                        self.handle_validate_request(token).await
-                    } else {
-                        Ok(None)
-                    }
-                }
-                None => self.handle_validate_request(token).await,
             }
-        } else {
-            Ok(None)
+            Some((None, expires_at)) => {
+                if Instant::now() > expires_at {
+                    self.handle_validate_request(token).await
+                } else {
+                    Ok(None)
+                }
+            }
+            None => self.handle_validate_request(token).await,
+        }
+    }
+
+    pub async fn invalidate_token(&self, token: &str) {
+        {
+            let mut cache_write = self.cache.write().await;
+            cache_write.remove(token);
         }
     }
 }
