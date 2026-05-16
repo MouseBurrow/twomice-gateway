@@ -1,19 +1,25 @@
 use crate::gateway_app::{extract_session_token_from_headers, GatewayApp};
 use axum::body::Bytes;
 use axum::extract::Request;
-use axum::Extension;
 use axum::http::{HeaderName, StatusCode};
 use axum::response::{IntoResponse, Response};
+use axum::Extension;
 
-fn route_url(path: &str, auth_url: &str, post_url: &str) -> Option<String> {
+fn route_url(path: &str, app: &GatewayApp) -> Option<String> {
     let base = if path.starts_with("/login")
         || path.starts_with("/logout")
         || path.starts_with("/signup")
         || path.starts_with("/account")
     {
-        Some(auth_url)
+        Some(&app.auth_service_url)
     } else if path.starts_with("/mcf") {
-        Some(post_url)
+        Some(&app.post_service_url)
+    } else if path.starts_with("/moderation") {
+        Some(&app.moderation_service_url)
+    } else if path.starts_with("/social") {
+        Some(&app.social_service_url)
+    } else if path.starts_with("/feed") {
+        Some(&app.feed_service_url)
     } else {
         None
     };
@@ -85,7 +91,7 @@ pub async fn request_handler(
     let path = req.uri().path().to_string();
     let method = req.method().clone();
 
-    let target = match route_url(&path, &app.auth_service_url, &app.post_service_url) {
+    let target = match route_url(&path, &app) {
         Some(t) => t,
         None => return (StatusCode::NOT_FOUND, "not found").into_response(),
     };

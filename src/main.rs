@@ -20,8 +20,20 @@ async fn main() -> anyhow::Result<()> {
         .unwrap_or_else(|_| "http://auth:8080".into());
     let post_service_url = env::var("POST_SERVICE_URL")
         .unwrap_or_else(|_| "http://post:8080".into());
+    let moderation_service_url = env::var("MODERATION_SERVICE_URL")
+        .unwrap_or_else(|_| "http://moderation:8080".into());
+    let social_service_url = env::var("SOCIAL_SERVICE_URL")
+        .unwrap_or_else(|_| "http://social:8080".into());
+    let feed_service_url = env::var("FEED_SERVICE_URL")
+        .unwrap_or_else(|_| "http://social-feed:8080".into());
 
-    let app = GatewayApp::new(auth_service_url, post_service_url);
+    let app = GatewayApp::new(
+        auth_service_url,
+        post_service_url,
+        moderation_service_url,
+        social_service_url,
+        feed_service_url,
+    );
 
     let router = Router::new()
         .fallback(request_handler)

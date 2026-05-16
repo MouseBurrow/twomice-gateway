@@ -18,15 +18,27 @@ pub struct GatewayApp {
     pub client: reqwest::Client,
     pub auth_service_url: String,
     pub post_service_url: String,
+    pub moderation_service_url: String,
+    pub social_service_url: String,
+    pub feed_service_url: String,
 }
 
 impl GatewayApp {
-    pub fn new(auth_service_url: String, post_service_url: String) -> Self {
+    pub fn new(
+        auth_service_url: String,
+        post_service_url: String,
+        moderation_service_url: String,
+        social_service_url: String,
+        feed_service_url: String,
+    ) -> Self {
         Self {
             cache: Arc::new(RwLock::new(HashMap::new())),
             client: reqwest::Client::new(),
             auth_service_url,
             post_service_url,
+            moderation_service_url,
+            social_service_url,
+            feed_service_url,
         }
     }
 
