@@ -1,13 +1,10 @@
 mod gateway_app;
 mod request_handler;
 
-use crate::gateway_app::GatewayApp;
-use actix_web::middleware::Logger;
-use actix_web::web;
-use actix_web::{App, HttpServer};
-
-use crate::request_handler::request_handler;
+use axum::Router;
 use env_logger::Env;
+use gateway_app::GatewayApp;
+use request_handler::request_handler;
 use std::env;
 
 #[tokio::main]
@@ -24,16 +21,14 @@ async fn main() -> anyhow::Result<()> {
     let post_service_url = env::var("POST_SERVICE_URL")
         .unwrap_or_else(|_| "http://post:8080".into());
 
-    let shared_app = web::Data::new(GatewayApp::new(auth_service_url, post_service_url));
-    HttpServer::new(move || {
-        App::new()
-            .app_data(shared_app.clone())
-            .wrap(Logger::default())
-            .default_service(web::to(request_handler))
-    })
-    .bind("0.0.0.0:8080")?
-    .run()
-    .await?;
+    let app = GatewayApp::new(auth_service_url, post_service_url);
+
+    let router = Router::new()
+        .fallback(request_handler)
+        .layer(axum::Extension(app));
+
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
+    axum::serve(listener, router).await?;
 
     Ok(())
 }
