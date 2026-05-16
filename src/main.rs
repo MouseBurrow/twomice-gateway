@@ -12,16 +12,19 @@ use std::env;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Set up the logger
     let app_env = env::var("APP_ENV").unwrap_or_else(|_| "dev".into());
     let filter = match app_env.as_str() {
-        "prod" => "warn,axum=info,tower_http=info",
-        // "staging" => "info,axum=info,tower_http=debug", << We might need later on
-        _ => "debug", // dev
+        "prod" => "warn,gateway=info",
+        _ => "debug",
     };
     env_logger::init_from_env(Env::default().default_filter_or(filter));
 
-    let shared_app = web::Data::new(GatewayApp::new());
+    let auth_service_url = env::var("AUTH_SERVICE_URL")
+        .unwrap_or_else(|_| "http://auth:8080".into());
+    let post_service_url = env::var("POST_SERVICE_URL")
+        .unwrap_or_else(|_| "http://post:8080".into());
+
+    let shared_app = web::Data::new(GatewayApp::new(auth_service_url, post_service_url));
     HttpServer::new(move || {
         App::new()
             .app_data(shared_app.clone())

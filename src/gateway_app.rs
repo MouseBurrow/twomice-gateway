@@ -1,4 +1,4 @@
-use awc::error::SendRequestError;
+use awc::Client;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -13,24 +13,30 @@ struct ValidateResponse {
 type CacheMap = HashMap<String, (Option<String>, Instant)>;
 pub struct GatewayApp {
     cache: Arc<RwLock<CacheMap>>,
+    pub client: Client,
+    pub auth_service_url: String,
+    pub post_service_url: String,
 }
 
 impl GatewayApp {
-    pub fn new() -> Self {
+    pub fn new(auth_service_url: String, post_service_url: String) -> Self {
         Self {
             cache: Arc::new(RwLock::new(HashMap::new())),
+            client: Client::new(),
+            auth_service_url,
+            post_service_url,
         }
     }
 
     async fn handle_validate_request(
         &self,
         token: String,
-    ) -> Result<Option<String>, SendRequestError> {
-        let auth_validate = "http://auth-service:8080/validate";
-        let client = awc::Client::new();
+    ) -> Result<Option<String>, awc::error::SendRequestError> {
+        let validate_url = format!("{}/validate", self.auth_service_url);
 
-        let mut resp = client
-            .post(auth_validate)
+        let mut resp = self
+            .client
+            .post(validate_url)
             .insert_header(("X-Session-Token", token.clone()))
             .send()
             .await?;
@@ -48,7 +54,7 @@ impl GatewayApp {
         Ok(response_user_id)
     }
 
-    pub async fn validate_token(&self, token: String) -> Result<Option<String>, SendRequestError> {
+    pub async fn validate_token(&self, token: String) -> Result<Option<String>, awc::error::SendRequestError> {
         let cache_result = {
             let cache_read = self.cache.read().await;
             cache_read.get(&token).cloned()
