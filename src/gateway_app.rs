@@ -55,7 +55,10 @@ impl GatewayApp {
             .send()
             .await?;
 
-        let parsed: ValidateResponse = resp.json().await.unwrap_or(ValidateResponse { user_id: None });
+        let parsed: ValidateResponse = resp
+            .json()
+            .await
+            .unwrap_or(ValidateResponse { user_id: None });
         let response_user_id = parsed.user_id;
 
         let ttl = Duration::from_secs(3600);

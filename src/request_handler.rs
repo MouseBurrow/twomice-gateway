@@ -84,10 +84,7 @@ async fn forward_request(
     Ok(response)
 }
 
-pub async fn request_handler(
-    Extension(app): Extension<GatewayApp>,
-    req: Request,
-) -> Response {
+pub async fn request_handler(Extension(app): Extension<GatewayApp>, req: Request) -> Response {
     let path = req.uri().path().to_string();
     let method = req.method().clone();
 
