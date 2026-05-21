@@ -1,4 +1,3 @@
-use http::HeaderValue;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -99,63 +98,5 @@ impl GatewayApp {
     pub async fn invalidate_token(&self, token: &str) {
         let mut cache_write = self.cache.write().await;
         cache_write.remove(token);
-    }
-}
-
-fn parse_session_token(cookie_header: &HeaderValue) -> Option<String> {
-    let cookie_str = cookie_header.to_str().ok()?;
-    for pair in cookie_str.split("; ") {
-        if let Some(value) = pair.strip_prefix("session_token=") {
-            return Some(value.to_string());
-        }
-    }
-    None
-}
-
-pub fn extract_session_token_from_headers(headers: &http::HeaderMap) -> Option<String> {
-    headers
-        .get(http::header::COOKIE)
-        .and_then(parse_session_token)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn parse_session_token_found() {
-        let val = HeaderValue::from_static("session_token=abc123; Other=val");
-        assert_eq!(parse_session_token(&val), Some("abc123".into()));
-    }
-
-    #[test]
-    fn parse_session_token_not_found() {
-        let val = HeaderValue::from_static("other=value");
-        assert_eq!(parse_session_token(&val), None);
-    }
-
-    #[test]
-    fn parse_session_token_empty_cookie() {
-        let val = HeaderValue::from_static("");
-        assert_eq!(parse_session_token(&val), None);
-    }
-
-    #[test]
-    fn extract_session_token_from_headers_with_cookie() {
-        let mut headers = http::HeaderMap::new();
-        headers.insert(
-            http::header::COOKIE,
-            HeaderValue::from_static("session_token=xyz789"),
-        );
-        assert_eq!(
-            extract_session_token_from_headers(&headers),
-            Some("xyz789".into())
-        );
-    }
-
-    #[test]
-    fn extract_session_token_from_headers_missing() {
-        let headers = http::HeaderMap::new();
-        assert_eq!(extract_session_token_from_headers(&headers), None);
     }
 }

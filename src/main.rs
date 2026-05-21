@@ -2,7 +2,7 @@ mod gateway_app;
 mod request_handler;
 
 use axum::Router;
-use env_logger::Env;
+use config::logger;
 use gateway_app::GatewayApp;
 use request_handler::request_handler;
 use std::env;
@@ -14,7 +14,7 @@ async fn main() -> anyhow::Result<()> {
         "prod" => "warn,gateway=info",
         _ => "debug",
     };
-    env_logger::init_from_env(Env::default().default_filter_or(filter));
+    logger::init_with_filter(filter);
 
     let auth_service_url =
         env::var("AUTH_SERVICE_URL").unwrap_or_else(|_| "http://auth:8080".into());

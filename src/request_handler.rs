@@ -1,9 +1,10 @@
-use crate::gateway_app::{extract_session_token_from_headers, GatewayApp};
+use crate::gateway_app::GatewayApp;
 use axum::body::Bytes;
 use axum::extract::Request;
 use axum::http::{HeaderName, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Extension;
+use custom_headers::session_token::extract_session_token_from_headers;
 
 fn route_url(path: &str, app: &GatewayApp) -> Option<String> {
     let base = if path.starts_with("/login")
