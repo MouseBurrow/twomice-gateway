@@ -50,7 +50,9 @@ jobs:
               cd services/gateway
               git fetch origin
               git checkout "$BRANCH"
-              git pull origin "$BRANCH"
+              if [[ "${{ github.ref_type }}" != "tag" ]]; then
+                git pull origin "$BRANCH"
+              fi
             else
               mkdir -p services && cd services
               git clone --branch "$BRANCH" https://github.com/MouseBurrow/twomice-gateway.git gateway
@@ -72,4 +74,5 @@ jobs:
             docker push ghcr.io/mouseburrow/twomice-gateway:$TAG
             rm -rf /tmp/docker-build
             cd /home/admin/twomice/deploy
+            docker compose -f docker-compose.${ENV_NAME}.yaml pull gateway
             docker compose -f docker-compose.${ENV_NAME}.yaml up -d gateway
