@@ -19,8 +19,12 @@ fn route_url(path: &str, app: &GatewayApp) -> Option<String> {
         Some(&app.moderation_service_url)
     } else if path.starts_with("/social") {
         Some(&app.social_service_url)
-    } else if path.starts_with("/feed") {
+    } else if path.starts_with("/users/me/nibs") {
+        Some(&app.post_service_url)
+    } else if path.starts_with("/users") {
         Some(&app.feed_service_url)
+    } else if path.starts_with("/feed") {
+        Some(&app.post_service_url)
     } else {
         None
     };
