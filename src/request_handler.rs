@@ -13,7 +13,7 @@ fn route_url(path: &str, app: &GatewayApp) -> Option<String> {
         || path.starts_with("/account")
     {
         Some(&app.auth_service_url)
-    } else if path.starts_with("/mcf") {
+    } else if path.starts_with("/b") {
         Some(&app.post_service_url)
     } else if path.starts_with("/moderation") {
         Some(&app.moderation_service_url)
