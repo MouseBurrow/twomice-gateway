@@ -91,10 +91,11 @@ async fn forward_request(
 
 pub async fn request_handler(Extension(app): Extension<GatewayApp>, req: Request) -> Response {
     let path = req.uri().path().to_string();
+    let query = req.uri().query().map(|q| format!("?{q}")).unwrap_or_default();
     let method = req.method().clone();
 
     let target = match route_url(&path, &app) {
-        Some(t) => t,
+        Some(t) => format!("{t}{query}"),
         None => return (StatusCode::NOT_FOUND, "not found").into_response(),
     };
 
