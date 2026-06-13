@@ -14,7 +14,12 @@ fn route_url(path: &str, app: &GatewayApp) -> Option<String> {
     {
         Some(&app.auth_service_url)
     } else if path.starts_with("/b") {
-        Some(&app.post_service_url)
+        let segments: Vec<&str> = path.split('/').collect();
+        if segments.len() == 4 && segments[3] == "followers" {
+            Some(&app.feed_service_url)
+        } else {
+            Some(&app.post_service_url)
+        }
     } else if path.starts_with("/moderation") {
         Some(&app.moderation_service_url)
     } else if path.starts_with("/social") {
@@ -91,7 +96,11 @@ async fn forward_request(
 
 pub async fn request_handler(Extension(app): Extension<GatewayApp>, req: Request) -> Response {
     let path = req.uri().path().to_string();
-    let query = req.uri().query().map(|q| format!("?{q}")).unwrap_or_default();
+    let query = req
+        .uri()
+        .query()
+        .map(|q| format!("?{q}"))
+        .unwrap_or_default();
     let method = req.method().clone();
 
     let target = match route_url(&path, &app) {
