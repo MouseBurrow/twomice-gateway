@@ -11,7 +11,13 @@ cargo test --no-run 2>&1
 
 echo ""
 EXIT_CODE=0
-echo "=== Running tests ==="
+
+if [ -f src/lib.rs ]; then
+  echo "=== Unit tests (lib) ==="
+  cargo test --lib 2>&1 || EXIT_CODE=$?
+fi
+
+echo "=== All tests ==="
 cargo test 2>&1 || EXIT_CODE=$?
 
 exit $EXIT_CODE
